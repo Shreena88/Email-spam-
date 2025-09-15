@@ -1,5 +1,33 @@
 {
   "manifest_version": 3,
-  "name": "Test Extension",
-  "version": "1.0"
+  "name": "Email Spam Detector",
+  "version": "1.1.0",
+  "description": "Detects spam emails using a transformer model (served by local API).",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:5000/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://mail.google.com/*",
+        "http://mail.google.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "alert.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Spam Detector"
+  }
 }

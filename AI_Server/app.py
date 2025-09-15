@@ -1,11 +1,15 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 import joblib
 import numpy as np
+import os
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # --- Model Loading ---
-MODEL_FILE = 'better_spam_model.pkl'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_FILE = os.path.join(BASE_DIR, 'better_spam_model.pkl')
 model = None
 model_classes = None
 
@@ -52,6 +56,12 @@ def analyze_email():
         'predicted_category': prediction_label,
         'spam_probability': float(spam_probability) # Ensure it's a standard float
     })
+
+@app.route('/model', methods=['GET'])
+def download_model():
+    if not os.path.exists(MODEL_FILE):
+        return jsonify({'error': 'Model file not found'}), 404
+    return send_file(MODEL_FILE, as_attachment=True, download_name='better_spam_model.pkl', mimetype='application/octet-stream')
 
 if __name__ == '__main__':
     print("🚀 Starting Flask server at http://127.0.0.1:5000")

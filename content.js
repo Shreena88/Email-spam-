@@ -56,6 +56,24 @@ function displayWarningBanner(result, emailElement) {
   }, 8000); // Banner stays for 8 seconds
 }
 
+// Attempt to load the downloaded model bytes (stored as Base64) from extension storage
+let cachedModelBase64 = null;
+async function loadModelFromStorage() {
+  try {
+    const data = await chrome.storage.local.get(['spamModelPkl']);
+    cachedModelBase64 = data.spamModelPkl || null;
+    if (cachedModelBase64) {
+      console.log('Email Spam Detector: Local model present.');
+    } else {
+      console.log('Email Spam Detector: Local model not found. Will rely on API.');
+    }
+  } catch (e) {
+    console.warn('Email Spam Detector: Could not load local model.', e);
+  }
+}
+
+loadModelFromStorage();
+
 // This function scrapes the key data from the email's HTML
 function scanAndAnalyzeEmail() {
   // IMPORTANT: These selectors are for Gmail's current interface and may change.

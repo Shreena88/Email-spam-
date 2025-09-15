@@ -1,5 +1,6 @@
 // The URL where your Python Flask server is running
 const API_ENDPOINT = 'http://127.0.0.1:5000/analyze';
+const MODEL_DOWNLOAD_URL = 'http://127.0.0.1:5000/model';
 
 // Thresholds to determine the verdict based on the AI's confidence
 const SPAM_THRESHOLD = 0.75;      // 75%+ -> Spam (red)
@@ -56,6 +57,34 @@ async function analyzeEmailWithPythonAPI(data) {
     return { verdict: 'Suspicious', riskScore: 0, reasons: ['Could not reach the AI analysis server.'] };
   }
 }
+
+// Download the latest model (.pkl) and store in chrome storage as Base64
+async function downloadAndStoreModel() {
+  try {
+    const response = await fetch(MODEL_DOWNLOAD_URL);
+    if (!response.ok) throw new Error(`Failed to download model: ${response.status}`);
+    const arrayBuffer = await response.arrayBuffer();
+    const base64 = arrayBufferToBase64(arrayBuffer);
+    await chrome.storage.local.set({ spamModelPkl: base64, spamModelUpdatedAt: Date.now() });
+    console.log('Email Spam Detector: Model downloaded and stored.');
+  } catch (err) {
+    console.error('Email Spam Detector: Model download failed.', err);
+  }
+}
+
+function arrayBufferToBase64(buffer) {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+  downloadAndStoreModel();
+});
 
 // This listener part remains the same
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
