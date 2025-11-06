@@ -137,39 +137,6 @@ The extension requires:
 - **🟡 Suspicious**: Yellow banner for connection issues or uncertain results  
 - **🟢 Not Spam**: No banner shown (safe emails)
 
-### Banner Features
 
-- **Auto-dismiss**: Banners fade out after 8 seconds
-- **Duplicate prevention**: Only one banner per email
-- **Risk scoring**: Shows percentage-based risk assessment
-- **Detailed reasons**: Lists specific factors that triggered the alert
-
-## 🔒 Privacy & Security
-
-- **Local Processing**: All email analysis happens on your local machine
-- **No Data Storage**: Email content is not stored or logged
-- **Offline Capable**: Works without internet connection once set up
-- **Open Source**: Full transparency of all processing logic
-
-## 🧪 Development
-
-### Testing the Extension
-
-1. **Load the extension** in Chrome developer mode
-2. **Open Gmail** and navigate to any email
-3. **Check the console** for "Email Spam Detector content script is active"
-4. **Verify API calls** in the Network tab of Chrome DevTools
-
-### Customizing the Model
-
-1. **Replace training data**: Update `Merged1_data.csv` with your dataset
-2. **Retrain the model**: Run `python create_model.py`
-3. **Restart the server**: The new model will be loaded automatically
-
-
-
-3. **Model not loading**
-   - Verify `better_spam_model.pkl` exists
-   - Check Python dependencies are installed
 
 
