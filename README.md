@@ -166,20 +166,6 @@ The extension requires:
 2. **Retrain the model**: Run `python create_model.py`
 3. **Restart the server**: The new model will be loaded automatically
 
-### Modifying Gmail Selectors
-
-Gmail's interface changes frequently. Update these selectors in `content.js`:
-- `.adn.ads`: Main email container
-- `.gD`: Sender element
-- `.hP`: Subject element
-
-## 📊 Model Performance
-
-The included model is trained on a balanced dataset and typically achieves:
-- **Accuracy**: ~95%
-- **Precision**: ~94%
-- **Recall**: ~96%
-- **F1-Score**: ~95%
 
 ## 🐛 Troubleshooting
 
@@ -197,24 +183,3 @@ The included model is trained on a balanced dataset and typically achieves:
    - Verify `better_spam_model.pkl` exists
    - Check Python dependencies are installed
 
-### Debug Mode
-
-Enable debug logging by opening Chrome DevTools and checking the Console tab while using Gmail.
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly with Gmail
-5. Submit a pull request
-
-## 📄 License
-
-This project is open source and available under the MIT License.
-
-## 🙏 Acknowledgments
-
-- Built with Flask, scikit-learn, and Chrome Extensions API
-- Trained on publicly available spam/ham email datasets
-- Designed for educational and research purposes
