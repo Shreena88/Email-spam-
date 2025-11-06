@@ -167,19 +167,9 @@ The extension requires:
 3. **Restart the server**: The new model will be loaded automatically
 
 
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **"Could not reach AI server"**
-   - Ensure Flask server is running on port 5000
-   - Check firewall settings
-
-2. **Extension not detecting emails**
-   - Gmail interface may have changed
-   - Update DOM selectors in `content.js`
 
 3. **Model not loading**
    - Verify `better_spam_model.pkl` exists
    - Check Python dependencies are installed
+
 
