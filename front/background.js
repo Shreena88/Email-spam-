@@ -2,8 +2,7 @@
 const API_ENDPOINT = 'http://127.0.0.1:5000/analyze';
 
 // Thresholds to determine the verdict based on the AI's confidence
-const SPAM_THRESHOLD = 0.75;      // 75%+ -> Spam (red)
-const SUSPICIOUS_THRESHOLD = 0.50; // 50%-74% -> Suspicious (yellow)
+const SPAM_THRESHOLD = 85; // Score > 85 -> Spam, otherwise Not Spam (Ham)
 
 // The new analysis function that calls the Python API
 async function analyzeEmailWithPythonAPI(data) {
@@ -24,28 +23,19 @@ async function analyzeEmailWithPythonAPI(data) {
 
     const result = await response.json();
     const spamProbability = result.spam_probability;
-    const predictedCategory = (result.predicted_category || '').toString().trim().toLowerCase();
 
     // Convert the probability score into our verdict system
     let verdict = 'Not Spam';
     let reasons = [];
     const riskScore = Math.round((spamProbability || 0) * 100);
 
-    // Binary decision driven by model label (spam vs ham)
-    if (predictedCategory === 'spam') {
+    // Decision driven by the 85% threshold
+    if (riskScore > SPAM_THRESHOLD) {
       verdict = 'Spam';
-      if (!Number.isNaN(riskScore)) {
-        reasons.push(`AI classified as SPAM (${riskScore}% probability).`);
-      } else {
-        reasons.push('AI classified as SPAM.');
-      }
+      reasons.push(`AI classified as SPAM (${riskScore}% probability).`);
     } else {
       verdict = 'Not Spam';
-      if (!Number.isNaN(riskScore)) {
-        reasons.push(`AI classified as NOT SPAM (${100 - riskScore}% confidence ham).`);
-      } else {
-        reasons.push('AI classified as NOT SPAM.');
-      }
+      reasons.push(`AI classified as NOT SPAM (${100 - riskScore}% confidence ham).`);
     }
 
     return { verdict, riskScore, reasons };
@@ -63,5 +53,5 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     analyzeEmailWithPythonAPI(request.data).then(sendResponse);
   }
   // Return true to enable asynchronous response
-  return true;
+  return true;
 });

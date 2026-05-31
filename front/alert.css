@@ -1,0 +1,127 @@
+/* Main banner positioning and modern style */
+.spam-alert-banner {
+  position: fixed !important; /* Floats on top of the page */
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: auto !important;
+  max-width: 600px !important;
+  min-width: 420px !important;
+  z-index: 2147483647 !important; /* Max possible 32-bit z-index to overlay Gmail controls */
+  
+  /* Animation-controlled properties (Do NOT use !important here, otherwise animation is ignored) */
+  top: -150px;
+  opacity: 0;
+  
+  /* Modern aesthetics */
+  background-color: #ffffff !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  padding: 16px 20px !important;
+  
+  /* Flexbox for alignment */
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 15px !important;
+
+  /* Animation and transition */
+  animation: spamDetectorSlideDown 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards !important;
+  transition: opacity 0.5s ease-in-out, top 0.5s ease-in-out !important;
+}
+
+/* Animation keyframes to slide the banner down */
+@keyframes spamDetectorSlideDown {
+  from {
+    top: -150px;
+    opacity: 0;
+  }
+  to {
+    top: 30px;
+    opacity: 1;
+  }
+}
+
+/* Icon styling */
+.alert-icon {
+  width: 24px !important;
+  height: 24px !important;
+  flex-shrink: 0 !important; /* Prevents icon from shrinking */
+  margin-top: 3px !important;
+}
+
+/* Text content styling */
+.alert-text-content {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  line-height: 1.5 !important;
+  color: #333333 !important;
+  flex-grow: 1 !important;
+}
+
+.alert-text-content strong {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  display: block !important;
+  margin-bottom: 2px !important;
+}
+
+.alert-text-content span {
+  font-size: 14px !important;
+  color: #555555 !important;
+}
+
+.alert-text-content ul {
+  margin: 8px 0 0 0 !important;
+  padding-left: 20px !important;
+  font-size: 13px !important;
+}
+
+/* Style for 'Warning' level alerts (Amber/Yellow) */
+.alert-suspicious {
+  background-color: #fffbeb !important;
+}
+.alert-suspicious .alert-icon {
+  color: #f59e0b !important;
+}
+.alert-suspicious .alert-text-content strong {
+  color: #b45309 !important;
+}
+
+/* Style for 'High Risk' level alerts (Red) */
+.alert-spam {
+  background-color: #fef2f2 !important;
+}
+.alert-spam .alert-icon {
+  color: #ef4444 !important;
+}
+.alert-spam .alert-text-content strong {
+  color: #b91c1c !important;
+}
+
+/* Style for 'Not Spam' (Green) */
+.alert-not-spam {
+  background-color: #ecfdf5 !important;
+}
+.alert-not-spam .alert-icon {
+  color: #10b981 !important;
+}
+.alert-not-spam .alert-text-content strong {
+  color: #047857 !important;
+}
+
+/* Close Button Styling */
+.alert-close-btn {
+  background: none !important;
+  border: none !important;
+  font-size: 20px !important;
+  font-weight: bold !important;
+  line-height: 1 !important;
+  color: #9ca3af !important;
+  cursor: pointer !important;
+  margin-left: 10px !important;
+  padding: 0 !important;
+  align-self: flex-start !important;
+  transition: color 0.2s !important;
+}
+.alert-close-btn:hover {
+  color: #4b5563 !important;
+}

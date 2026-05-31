@@ -5,24 +5,46 @@ import os
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.pipeline import Pipeline
-from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.utils import resample
+from sklearn.pipeline import Pipeline as SkPipeline
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from imblearn.over_sampling import SMOTE
+from imblearn.pipeline import Pipeline as ImbPipeline
 
-DATA_FILE = "Merged1_data.csv"
-MODEL_FILE = "better_spam_model.pkl"
+# Resolve paths relative to the script directory
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_FILE = os.path.join(SCRIPT_DIR, "Merged1_data.csv")
+MODEL_FILE = os.path.join(SCRIPT_DIR, "better_spam_model.pkl")
 
 def clean_text(text):
     """
-    Basic text cleaning: lowercase, remove numbers/punctuation/extra spaces.
+    Improved text cleaning:
+    - Replace URLs with 'urlplaceholder'
+    - Replace emails with 'emailplaceholder'
+    - Replace numbers with 'numberplaceholder'
+    - Lowercase and remove punctuation (replacing with spaces to avoid merging words)
+    - Remove extra spaces
     """
     text = str(text).lower()
-    text = re.sub(r"[^a-z\s]", "", text)
+    
+    # 1. Replace URLs
+    text = re.sub(r"https?://\S+|www\.\S+", " urlplaceholder ", text)
+    
+    # 2. Replace email addresses
+    text = re.sub(r"\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}\b", " emailplaceholder ", text)
+    
+    # 3. Replace numbers
+    text = re.sub(r"\b\d+(?:[.,]\d+)*\b", " numberplaceholder ", text)
+    
+    # 4. Remove all non-alphabetic/non-whitespace characters (replace with space to avoid word merging)
+    text = re.sub(r"[^a-z\s]", " ", text)
+    
+    # 5. Clean up extra spaces
     text = re.sub(r"\s+", " ", text).strip()
+    
     return text
 
 def train_and_save_model():
-    print(f"⏳ Loading data from '{DATA_FILE}' ...")
+    print(f"Loading data from '{DATA_FILE}' ...")
     data = pd.read_csv(DATA_FILE, on_bad_lines='skip', low_memory=False, encoding='latin-1')
 
     # normalize column names
@@ -33,7 +55,7 @@ def train_and_save_model():
     label_col = next((c for c in ['category','label','class','target','tag'] if c in data.columns), None)
 
     if not text_col or not label_col:
-        raise ValueError("❌ Could not detect text/label columns in CSV.")
+        raise ValueError("Could not detect text/label columns in CSV.")
 
     # drop missing
     data = data.dropna(subset=[text_col, label_col])
@@ -54,26 +76,21 @@ def train_and_save_model():
     print("\nLabel distribution:")
     print(data[label_col].value_counts())
 
-    # balance dataset
-    spam = data[data[label_col]=='spam']
-    ham = data[data[label_col]=='ham']
-    if len(spam) < len(ham):
-        ham_down = resample(ham, replace=False, n_samples=len(spam), random_state=42)
-        data_bal = pd.concat([spam, ham_down])
-    else:
-        spam_up = resample(spam, replace=True, n_samples=len(ham), random_state=42)
-        data_bal = pd.concat([ham, spam_up])
-
-    print("\nBalanced label distribution:")
-    print(data_bal[label_col].value_counts())
-
-    # train/test split
-    X_train, X_test, y_train, y_test = train_test_split(
-        data_bal[text_col], data_bal[label_col], test_size=0.2, random_state=42, stratify=data_bal[label_col]
+    # train/test split (split the original dataset first)
+    train_data, test_data = train_test_split(
+        data, test_size=0.2, random_state=42, stratify=data[label_col]
     )
 
-    # build pipeline
-    model = Pipeline([
+    X_train_raw = train_data[text_col]
+    y_train = train_data[label_col]
+    X_test = test_data[text_col]
+    y_test = test_data[label_col]
+
+    print("\nUnbalanced train label distribution:")
+    print(y_train.value_counts())
+
+    # build training pipeline with SMOTE
+    training_pipeline = ImbPipeline([
         ('tfidf', TfidfVectorizer(
             stop_words='english',
             lowercase=True,
@@ -81,21 +98,32 @@ def train_and_save_model():
             max_df=0.95,           # drop overly common words
             min_df=3               # ignore rare words
         )),
+        ('smote', SMOTE(random_state=42)),
         ('nb', MultinomialNB(alpha=0.3, fit_prior=True))
     ])
 
-    # train
-    model.fit(X_train, y_train)
+    # train pipeline (SMOTE is applied to TF-IDF features)
+    print("\nTraining model with SMOTE balancing...")
+    training_pipeline.fit(X_train_raw, y_train)
+
+    # Reconstruct standard scikit-learn pipeline for inference (removes SMOTE dependency during prediction/loading)
+    model = SkPipeline([
+        ('tfidf', training_pipeline.named_steps['tfidf']),
+        ('nb', training_pipeline.named_steps['nb'])
+    ])
 
     # evaluate
     y_pred = model.predict(X_test)
-    print("\n📊 Model Performance:")
+    print("\nModel Performance:")
     print(classification_report(y_test, y_pred, digits=4))
+    
+    acc = accuracy_score(y_test, y_pred)
+    print(f"Overall Test Accuracy: {acc:.4f} ({acc*100:.2f}%)")
     print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
 
     # save
     joblib.dump(model, MODEL_FILE)
-    print(f"\n✅ Model saved as '{MODEL_FILE}'")
+    print(f"\nModel saved as '{MODEL_FILE}'")
 
     return model
 
@@ -103,9 +131,9 @@ if __name__ == "__main__":
     if not os.path.exists(MODEL_FILE):
         model = train_and_save_model()
     else:
-        print(f"🔍 Loading existing model '{MODEL_FILE}'...")
+        print(f"Loading existing model '{MODEL_FILE}'...")
         model = joblib.load(MODEL_FILE)
-        print("✅ Model loaded successfully.")
+        print("Model loaded successfully.")
 
     # quick test
     samples = [
